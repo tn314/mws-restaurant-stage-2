@@ -45,7 +45,10 @@ self.addEventListener('install', function(event) {
     //'dist/images/10.jpg',
     //'dist/images/10-400.jpg',
     //'dist/images/10-600.jpg',
-    //'dist/images/10-800.jpg'                                  
+    //'dist/images/10-800.jpg',
+    'dist/images/rr-default-400.jpg',
+    'dist/images/rr-default-600.jpg',
+    'dist/images/rr-default-800.jpg',                                  
   ];
 
 
