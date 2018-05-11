@@ -1,3 +1,10 @@
+var staticCacheName = 'restaurant-reviews-static-v2';
+var contentImgsCache = 'restaurant-reviews-content-imgs';
+var allCaches = [
+  staticCacheName,
+  contentImgsCache
+];
+
 self.addEventListener('install', function(event) {
   
   const urlsToCache = [
@@ -5,69 +12,66 @@ self.addEventListener('install', function(event) {
     'restaurant.html',
     'dist/css/style.min.css',
     'dist/js/main.min.js',
-    'dist/js/restaurant_info.min.js',
-    //'dist/images/1.jpg',
-    'dist/images/1-400.jpg',
-    'dist/images/1-600.jpg',
-    'dist/images/1-800.jpg',
-    //'dist/images/2.jpg',
-    'dist/images/2-400.jpg',
-    'dist/images/2-600.jpg',
-    'dist/images/2-800.jpg',
-    //'dist/images/3.jpg',
-    'dist/images/3-400.jpg',
-    'dist/images/3-600.jpg',
-    'dist/images/3-800.jpg',
-    //'dist/images/4.jpg',
-    'dist/images/4-400.jpg',
-    'dist/images/4-600.jpg',
-    'dist/images/4-800.jpg',
-    //'dist/images/5.jpg',
-    'dist/images/5-400.jpg',
-    'dist/images/5-600.jpg',
-    'dist/images/5-800.jpg',
-    //'dist/images/6.jpg',
-    'dist/images/6-400.jpg',
-    'dist/images/6-600.jpg',
-    'dist/images/6-800.jpg',
-    //'dist/images/7.jpg',
-    'dist/images/7-400.jpg',
-    'dist/images/7-600.jpg',
-    'dist/images/7-800.jpg',
-    //'dist/images/8.jpg',
-    'dist/images/8-400.jpg',
-    'dist/images/8-600.jpg',
-    'dist/images/8-800.jpg',
-    //'dist/images/9.jpg',
-    'dist/images/9-400.jpg',
-    'dist/images/9-600.jpg',
-    'dist/images/9-800.jpg',
-    //'dist/images/10.jpg',
-    //'dist/images/10-400.jpg',
-    //'dist/images/10-600.jpg',
-    //'dist/images/10-800.jpg',
-    'dist/images/rr-default-400.jpg',
-    'dist/images/rr-default-600.jpg',
-    'dist/images/rr-default-800.jpg',                                  
+    'dist/js/restaurant_info.min.js',                   
   ];
 
 
   event.waitUntil(
-    caches.open('restaurant-review-static-v1').then(function(cache) {
+    caches.open(staticCacheName).then(function(cache) {
       return cache.addAll(urlsToCache);
     })
   );
 });
 
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request).then(function(response) {
-        if (response) {
-          console.log(response);
-          return response;
-        }
-
-        return fetch(event.request);
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.filter(function(cacheName) {
+          return cacheName.startsWith('restaurant-reviews-') &&
+                 !allCaches.includes(cacheName);
+        }).map(function(cacheName) {
+          return caches.delete(cacheName);
+        })
+      );
     })
   );
 });
+
+self.addEventListener('fetch', function(event) {
+  var requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin === location.origin) {
+    if (requestUrl.pathname.startsWith('/dist/images/')) {
+      event.respondWith(servePhoto(event.request));
+      return;
+    }
+  }
+
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      return response || fetch(event.request);
+    })
+  );  
+});
+
+function servePhoto(request) {
+  // Photo urls look like:
+  // /photos/9-8028-7527734776-e1d2bda28e-800px.jpg
+  // But storageUrl has the -800px.jpg bit missing.
+  // Use this url to store & match the image in the cache.
+  // This means you only store one copy of each photo.
+  var storageUrl = request.url.replace(/-\d+px\.jpg$/, '');
+
+  // HINT: cache.put supports a plain url as the first parameter
+  return caches.open(contentImgsCache).then(function(cache) {
+    return cache.match(storageUrl).then(function(response) {
+      if (response) return response;
+
+      return fetch(request).then(function(networkResponse) {
+        cache.put(storageUrl, networkResponse.clone());
+        return networkResponse;
+      });
+    });
+  });
+}

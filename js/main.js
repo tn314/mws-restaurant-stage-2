@@ -148,9 +148,9 @@ window.createRestaurantHTML = (restaurant) => {
 
   const imageName = DBHelper.imageUrlForRestaurant(restaurant);
 
-  const smallImage = `${imageName}-400.jpg`;
-  const mediumImage = `${imageName}-600.jpg`;
-  const largeImage = `${imageName}-800.jpg`;
+  const smallImage = `${imageName}-400px.jpg`;
+  const mediumImage = `${imageName}-600px.jpg`;
+  const largeImage = `${imageName}-800px.jpg`;
 
   image.src = smallImage;
   image.setAttribute('srcset', `${largeImage} 2x`);    

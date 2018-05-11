@@ -71,7 +71,7 @@ gulp.task('images', function () {
       use: [pngquant()]
     }))
     .pipe(rename(function (path) {
-      path.basename += `-${resize_settings.width}`;
+      path.basename += `-${resize_settings.width}px`;
     }))            
     .pipe(gulp.dest('dist/images/'));
   });
