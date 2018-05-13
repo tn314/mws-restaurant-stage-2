@@ -11,9 +11,7 @@ var pngquant = require('imagemin-pngquant');
 var rename = require('gulp-rename');
 var del = require('del');
  
-gulp.task('default', ['styles', 'scripts', 'images'], function() {
-  gulp.watch('js/**/*.js', ['scripts']);
-});
+gulp.task('default', ['styles', 'scripts', 'images']);
 
 
 /* STYLES */
